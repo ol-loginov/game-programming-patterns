@@ -1,4 +1,79 @@
-2014-05-26 - fix #207
+2014-08-17 - fix #252
+2014-08-16 - merge object pool changes
+2014-08-15 - email, set up group for translators
+2014-08-14 - finish dirty flag, renumber front matter
+2014-08-13 - start laying out dirty flag
+2014-08-12 - rescan illustrations
+2014-08-11 - merge dirty flag
+2014-08-10 - figure out which illustrations need rescanning
+2014-08-09 - email (1 :( )
+2014-08-08 - layout data locality
+2014-08-07 - merge data locality changes
+2014-08-06 - layout service locator
+2014-08-05 - merge service locator
+2014-08-04 - layout event queue
+2014-08-03 - merge event queue
+2014-08-02 - layout component
+2014-08-01 - merge component changes
+2014-07-28 - email
+2014-07-27 - layout type object
+2014-07-26 - merge type object changes
+2014-07-25 - print table of contents
+2014-07-24 - email
+2014-07-23 - ebook table of contents
+2014-07-22 - layout subclass sandbox
+2014-07-21 - fix #234 and merge subclass sandbox changes
+2014-07-20 - email
+2014-07-19 - start sketching cover illustration
+2014-07-18 - more cover comps
+2014-07-17 - finish bytecode
+2014-07-16 - layout behavioral patterns, start on bytecode
+2014-07-15 - merge bytecode changes
+2014-07-14 - layout update method
+2014-07-13 - merge update method changes
+2014-07-08 - email
+2014-07-07 - layout game loop
+2014-07-06 - merge in changes to game loop
+2014-07-05 - work on toc for epub
+2014-07-04 - work on styling for epub
+2014-07-03 - more work on format script for epub, alt text for images
+2014-07-02 - more work on epub
+2014-07-01 - start working on epub version
+2014-06-30 - finish double buffer
+2014-06-29 - sequencing patterns, start working on double buffer
+2014-06-28 - merge changes from lauren
+2014-06-27 - layout state
+2014-06-26 - 6 emails
+2014-06-25 - lay out singleton
+2014-06-24 - lay out prototype
+2014-06-23 - lay out observer
+2014-06-22 - finish command, lay out flyweight
+2014-06-21 - start laying out command
+2014-06-20 - layout architecture, start building book
+2014-06-19 - akkurat -> source, layout intro
+2014-06-18 - merge pull requests, including lauren's changes
+2014-06-17 - figure captions and start working on front matter
+2014-06-16 - turn links to chapter references
+2014-06-15 - title and section pages
+2014-06-14 - running footer, new column proportion
+2014-06-13 - work on illustration workflow
+2014-06-12 - 13.5pt baseline grid
+2014-06-11 - more hand layout and style tweaking
+2014-06-10 - start hand laying out object pool, more style work
+2014-06-09 - massage xml a bunch to make indesign happy
+2014-06-08 - more work on xml and masters
+2014-06-07 - fight with xml
+2014-06-06 - work on masters and styling xml
+2014-06-05 - add xml support to format script, start figuring out how to import
+2014-06-04 - fix four bugs, send money to lauren
+2014-06-03 - pick body font, start laying out masters
+2014-06-02 - lots of design work
+2014-06-01 - start playing with design
+2014-05-30 - start learning indesign and toying with design
+2014-05-29 - fix bugs in one chapter
+2014-05-28 - fix bugs in two chapters, four emails
+2014-05-27 - fix four bugs
+2014-05-26 - fix #207, reformat event queue
 2014-05-26 - four bugs
 2014-05-25 - revise last 2182 words of component
 2014-05-24 - revise 2449 words component

@@ -5,12 +5,11 @@
 
 import glob
 import os
+import re
 import subprocess
 import sys
 import time
 from datetime import datetime
-import codecs
-import re
 
 import markdown
 import smartypants
@@ -24,47 +23,68 @@ PINK = '\033[91m'
 YELLOW = '\033[33m'
 
 CHAPTERS = [
-  (u"Introduction", u"Introduction"),
-  (u"Architecture, Performance, and Games", u"Architecture, Performance, and Games"),
-  (u"Design Patterns Revisited", u"Design Patterns Revisited"),
-  (u"Command", u"Command"),
-  (u"Flyweight", u"Flyweight"),
-  (u"Observer", u"Observer"),
-  (u"Prototype", u"Prototype"),
-  (u"Singleton", u"Singleton"),
-  (u"State", u"State"),
-  (u"Sequencing Patterns", u"Sequencing Patterns"),
-  (u"Double Buffer", u"Double Buffer"),
-  (u"Game Loop", u"Game Loop"),
-  (u"Update Method", u"Update Method"),
-  (u"Behavioral Patterns", u"Behavioral Patterns"),
-  (u"Bytecode", u"Bytecode"),
-  (u"Subclass Sandbox", u"Subclass Sandbox"),
-  (u"Type Object", u"Type Object"),
-  (u"Decoupling Patterns", u"Decoupling Patterns"),
-  (u"Component", u"Component"),
-  (u"Event Queue", u"Event Queue"),
-  (u"Service Locator", u"Service Locator"),
-  (u"Optimization Patterns", u'Низкоуровневая оптимизация'),
-  (u"Data Locality", u"Data Locality"),
-  (u"Dirty Flag", u"Грязный флаг"),
-  (u"Object Pool", u"Object Pool"),
-  (u"Spatial Partition", u"Spatial Partition")
+  "Introduction",
+  "Architecture, Performance, and Games",
+  "Design Patterns Revisited",
+  "Command",
+  "Flyweight",
+  "Observer",
+  "Prototype",
+  "Singleton",
+  "State",
+  "Sequencing Patterns",
+  "Double Buffer",
+  "Game Loop",
+  "Update Method",
+  "Behavioral Patterns",
+  "Bytecode",
+  "Subclass Sandbox",
+  "Type Object",
+  "Decoupling Patterns",
+  "Component",
+  "Event Queue",
+  "Service Locator",
+  "Optimization Patterns",
+  "Data Locality",
+  "Dirty Flag",
+  "Object Pool",
+  "Spatial Partition"
 ]
 
-STRINGS = {
-		'Previous Chapter': u'Предыдущая глава',
-		'Next Chapter': u'Следующая глава',
-    'Navigation': u'Навигация'
-}
+# URLs for hyperlinks to chapters. Note that the order is significant here.
+# The index in this list + 1 is the chapter's number in the table of contents.
+CHAPTER_HREFS = [
+  "introduction.html",
+  "architecture-performance-and-games.html",
+  "command.html",
+  "flyweight.html",
+  "observer.html",
+  "prototype.html",
+  "singleton.html",
+  "state.html",
+  "double-buffer.html",
+  "game-loop.html",
+  "update-method.html",
+  "bytecode.html",
+  "subclass-sandbox.html",
+  "type-object.html",
+  "component.html",
+  "event-queue.html",
+  "service-locator.html",
+  "data-locality.html",
+  "dirty-flag.html",
+  "object-pool.html",
+  "spatial-partition.html"
+]
 
 num_chapters = 0
 empty_chapters = 0
 total_words = 0
 
+extension = "html"
 
-def htmlpath(pattern):
-  return 'html/' + pattern + '.html'
+def output_path(pattern):
+  return extension + "/" + pattern + "." + extension
 
 
 def cpp_path(pattern):
@@ -73,15 +93,15 @@ def cpp_path(pattern):
 
 def pretty(text):
   '''Use nicer HTML entities and special characters.'''
-  text = text.replace(u" -- ", u"&#8202;&mdash;&#8202;")
-  text = text.replace(u"à", u"&agrave;")
-  text = text.replace(u"ï", u"&iuml;")
-  text = text.replace(u"ø", u"&oslash;")
-  text = text.replace(u"æ", u"&aelig;")
+  text = text.replace(" -- ", "&#8202;&mdash;&#8202;")
+  text = text.replace("à", "&agrave;")
+  text = text.replace("ï", "&iuml;")
+  text = text.replace("ø", "&oslash;")
+  text = text.replace("æ", "&aelig;")
   return text
 
 
-def formatfile(path, nav, skip_up_to_date):
+def format_file(path, nav, skip_up_to_date):
   basename = os.path.basename(path)
   basename = basename.split('.')[0]
 
@@ -92,8 +112,8 @@ def formatfile(path, nav, skip_up_to_date):
     sourcemod = max(sourcemod, os.path.getmtime(cpp_path(basename)))
 
   destmod = 0
-  if os.path.exists(htmlpath(basename)):
-    destmod = max(destmod, os.path.getmtime(htmlpath(basename)))
+  if os.path.exists(output_path(basename)):
+    destmod = max(destmod, os.path.getmtime(output_path(basename)))
 
   if skip_up_to_date and sourcemod < destmod:
     return
@@ -105,8 +125,8 @@ def formatfile(path, nav, skip_up_to_date):
   navigation = []
 
   # Read the markdown file and preprocess it.
-  contents = u''
-  with codecs.open(path, encoding='utf-8') as input:
+  contents = ''
+  with open(path, 'r') as input:
     # Read each line, preprocessing the special codes.
     for line in input:
       stripped = line.lstrip()
@@ -127,13 +147,13 @@ def formatfile(path, nav, skip_up_to_date):
         else:
           print "UNKNOWN COMMAND:", command, args
 
-      elif stripped.startswith('#'):
+      elif extension != "xml" and stripped.startswith('#'):
         # Build the page navigation from the headers.
         index = stripped.find(" ")
         headertype = stripped[:index]
         header = pretty(stripped[index:].strip())
-        anchor = header.lower().replace(u' ', u'-')
-        anchor = re.sub(re.escape(u'.?!:/') , u'', anchor)
+        anchor = header.lower().replace(' ', '-')
+        anchor = anchor.translate(None, '.?!:/')
 
         # Add an anchor to the header.
         contents += indentation + headertype
@@ -149,41 +169,44 @@ def formatfile(path, nav, skip_up_to_date):
   modified = datetime.fromtimestamp(os.path.getmtime(path))
   mod_str = modified.strftime('%B %d, %Y')
 
-  with codecs.open("asset/template.html", encoding='utf-8') as f:
+  with open("asset/template." + extension) as f:
     template = f.read()
 
-  # Write the HTML output.
-  with codecs.open(htmlpath(basename), mode='w', encoding='utf-8') as out:
+  # Write the output.
+  with open(output_path(basename), 'w') as out:
     title_text = title
-    section_header = u""
+    section_header = ""
 
     if section != "":
       title_text = title + " &middot; " + section
-      section_href = next(value for index,value in enumerate(CHAPTERS) if value[1] == section)[0].lower().replace(" ", "-")
-      section_header = u'<span class="section"><a href="{}.html">{}</a></span>'.format(
+      section_href = section.lower().replace(" ", "-")
+      section_header = '<span class="section"><a href="{}.html">{}</a></span>'.format(
         section_href, section)
 
     prev_link, next_link = make_prev_next(title)
 
-    contents = contents.replace(u'<aside', u'<aside markdown="1"')
+    contents = contents.replace('<aside', '<aside markdown="1"')
 
     body = markdown.markdown(contents,
             extensions=['extra', 'def_list', 'codehilite'])
-    body = body.replace(u'<aside markdown="1"', u'<aside')
+    body = body.replace('<aside markdown="1"', '<aside')
 
     body = smartypants.smartypants(body)
 
-    html = template
-    html = html.replace("{{title}}", title_text)
-    html = html.replace("{{section_header}}", section_header)
-    html = html.replace("{{header}}", title)
-    html = html.replace("{{body}}", body)
-    html = html.replace("{{prev}}", prev_link)
-    html = html.replace("{{next}}", next_link)
-    html = html.replace("{{navigation}}",
-      navigationtohtml(title, navigation))
+    output = template
+    output = output.replace("{{title}}", title_text)
+    output = output.replace("{{section_header}}", section_header)
+    output = output.replace("{{header}}", title)
+    output = output.replace("{{body}}", body)
+    output = output.replace("{{prev}}", prev_link)
+    output = output.replace("{{next}}", next_link)
+    output = output.replace("{{navigation}}",
+        navigation_to_html(title, navigation))
 
-    out.write(html)
+    if extension == "xml":
+      output = clean_up_xml(output)
+
+    out.write(output)
 
   global total_words
   global num_chapters
@@ -209,11 +232,94 @@ def formatfile(path, nav, skip_up_to_date):
       GREEN, DEFAULT, basename, word_count)
 
 
-def chapter_to_file(chapter):
+def clean_up_xml(output):
+  """Takes the XHTML output and massages it to play nicer with InDesign's XML
+  import... idiosyncracies."""
+
+  # Split into preformatted code and regular markup sections. We need to treat
+  # code blocks specially so we can preserve their formatting.
+  in_code = False
+  chunks = re.split("(</?pre>)", output)
+
+  def clean_up_code_xml(code):
+    # Ditch most code formatting tags.
+    code = re.sub(r'<span class="(k|kt|mi|n|nb|nc|nf|nl|o|p)">([^<]+)</span>',
+                  r"\2", code)
+
+    # Turn comments into something InDesign can map to a style.
+    code = re.sub(r'<span class="(c1|cn)">([^<]+)</span>',
+                  r"<comment>\2</comment>", code)
+
+    # Turn newlines into soft returns so code blocks stay one paragraph, except
+    # for the last one.
+    code = code[:-1].replace("\n", "&#x2028;") + "\n"
+
+    return code
+
+  def fix_link(match):
+    tag = match.group(1)
+    contents = match.group(2)
+    href = re.search(r'href\s*=\s*"([^"]+)"', tag).group(1)
+
+    # If it's not a link to a chapter, just return the contents of the link and
+    # strip out the link itself.
+    if not href in CHAPTER_HREFS:
+      return contents
+
+    # Turn it into a chapter number reference.
+    return "{}<chap-ref> ({})</chap-ref>".format(
+        contents, CHAPTER_HREFS.index(href) + 1)
+
+  def clean_up_xhtml(html):
+    # Replace chapter links with chapter number references and remove other
+    # links.
+    html = re.sub(r"<a\s+([^>]+)>([^<]+)</a>", fix_link, html)
+
+    # Ditch newlines in the middle of blocks of text. Out of sheer malice,
+    # even though they are meaningless in actual XML, InDesign treats them
+    # as significant.
+    html = re.sub(r"\n(?<!<)", " ", html)
+
+    # Also collapse redundant whitespace.
+    html = re.sub(r" +", " ", html)
+    html = html.replace("> <", "><")
+
+    # Re-add newlines after closing paragraph-level tags.
+    html = html.replace("</p>", "</p>\n")
+    html = html.replace("</h2>", "</h2>\n")
+    html = html.replace("</h3>", "</h3>\n")
+    html = html.replace("</li>", "</li>\n")
+    html = html.replace("</ol>", "</ol>\n")
+    html = html.replace("</ul>", "</ul>\n")
+    html = html.replace("</pre>", "</pre>\n")
+    html = html.replace("</aside>", "</aside>\n")
+    html = html.replace("</blockquote>", "</blockquote>\n")
+
+    # TODO: Non-breaking spaces in <code>...</code> sections.
+    return html
+
+  result = ""
+  for chunk in chunks:
+    if chunk == "<pre>":
+      in_code = True
+      result += chunk
+    elif chunk == "</pre>":
+      in_code = False
+      result += chunk
+    else:
+      if in_code:
+        result += clean_up_code_xml(chunk)
+      else:
+        result += clean_up_xhtml(chunk)
+
+  return result
+
+
+def title_to_file(title):
   """Given a title like "Event Queue", converts it to the corresponding file
   name like "event-queue"."""
 
-  return (chapter[0].lower()
+  return (title.lower()
     .replace(" ", "-")
     .replace(",", ""))
 
@@ -221,45 +327,45 @@ def chapter_to_file(chapter):
 def make_prev_next(title):
   """Generate the links that thread through the chapters."""
 
-  chapter_index = next(index for index,value in enumerate(CHAPTERS) if value[1] == title)
+  chapter_index = CHAPTERS.index(title)
   prev_link = ""
   next_link = ""
   if chapter_index > 0:
-    prev_href = chapter_to_file(CHAPTERS[chapter_index - 1])
-    prev_link = u'<span class="prev">&larr; <a href="{}.html">{}</a></span>'.format(
-      prev_href, STRINGS['Previous Chapter'], CHAPTERS[chapter_index - 1])
+    prev_href = title_to_file(CHAPTERS[chapter_index - 1])
+    prev_link = '<span class="prev">&larr; <a href="{}.html">Previous Chapter</a></span>'.format(
+      prev_href, CHAPTERS[chapter_index - 1])
 
   if chapter_index < len(CHAPTERS) - 1:
-    next_href = chapter_to_file(CHAPTERS[chapter_index + 1])
-    next_link = u'<span class="next"><a href="{}.html">Next Chapter</a> &rarr;</span>'.format(
-      next_href, STRINGS['Next Chapter'], CHAPTERS[chapter_index + 1])
+    next_href = title_to_file(CHAPTERS[chapter_index + 1])
+    next_link = '<span class="next"><a href="{}.html">Next Chapter</a> &rarr;</span>'.format(
+      next_href, CHAPTERS[chapter_index + 1])
 
   return (prev_link, next_link)
 
 
-def navigationtohtml(chapter, headers):
-  nav = u''
+def navigation_to_html(chapter, headers):
+  nav = ''
 
   # Section headers start two levels deep.
   currentdepth = 1
   for depth, header, anchor in headers:
     if currentdepth == depth:
-      nav += u'</li><li>\n'
+      nav += '</li><li>\n'
 
     while currentdepth < depth:
-      nav += u'<ul><li>\n'
+      nav += '<ul><li>\n'
       currentdepth += 1
 
     while currentdepth > depth:
-      nav += u'</li></ul>\n'
+      nav += '</li></ul>\n'
       currentdepth -= 1
 
-    nav += u'<a href="#' + anchor + '">' + header + u'</a>'
+    nav += '<a href="#' + anchor + '">' + header + '</a>'
 
 
   # Close the lists.
   while currentdepth > 1:
-    nav += u'</li></ul>\n'
+    nav += '</li></ul>\n'
     currentdepth -= 1
 
   return nav
@@ -319,7 +425,7 @@ def include_code(pattern, index, indentation):
 
 def buildnav(searchpath):
   nav = '<div class="nav">\n'
-  nav = nav + '<h1><a href="/">' + STRINGS['Navigation'] + '</a></h1>\n'
+  nav = nav + '<h1><a href="/">Navigation</a></h1>\n'
 
   # Read the chapter outline from the index page.
   with open('html/index.html', 'r') as source:
@@ -340,11 +446,11 @@ def buildnav(searchpath):
   return nav
 
 
-def formatfiles(file_filter, skip_up_to_date):
+def format_files(file_filter, skip_up_to_date):
   '''Process each markdown file.'''
   for f in glob.iglob(searchpath):
     if file_filter == None or file_filter in f:
-      formatfile(f, nav, skip_up_to_date)
+      format_file(f, nav, skip_up_to_date)
 
 
 def check_sass():
@@ -363,16 +469,20 @@ nav = buildnav(searchpath)
 
 if len(sys.argv) == 2 and sys.argv[1] == '--watch':
   while True:
-    formatfiles(None, True)
+    format_files(None, True)
     check_sass()
     time.sleep(0.3)
 else:
+  if len(sys.argv) > 1 and sys.argv[1] == '--xml':
+    extension = "xml"
+    del sys.argv[1]
+
   # Can specify a file name filter to just regenerate a subset of the files.
   file_filter = None
   if len(sys.argv) > 1:
     file_filter = sys.argv[1]
 
-  formatfiles(file_filter, False)
+  format_files(file_filter, False)
 
   average_word_count = total_words / (num_chapters - empty_chapters)
   estimated_word_count = total_words + (empty_chapters * average_word_count)

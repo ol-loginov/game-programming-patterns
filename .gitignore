@@ -5,6 +5,7 @@ xcuserdata/
 *.xcuserstate
 project.xcworkspace/
 
-# idea files
 .idea/
 *.iml
+
+xml/
